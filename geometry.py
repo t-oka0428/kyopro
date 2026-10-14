@@ -1,4 +1,4 @@
-#https://github.com/t-oka0428/kyopro/edit/main/geometry.py
+#https://github.com/t-oka0428/kyopro/blob/main/geometry.py
 
 from functools import cmp_to_key
 import collections
