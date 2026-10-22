@@ -23,7 +23,7 @@ def trie(X,n):
   return G,parent,accept
 
 #trie木をaho_corasick遷移グラフに改造
-def aho_corasick(G,parent,n):
+def aho_corasick(G,n):
   N = len(parent)
   failure = [-1 for _ in range(N)]
   failure[0] = 0
