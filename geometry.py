@@ -95,7 +95,7 @@ def declination_sorted(P):
 #定数倍の軽い偏角ソート
 #クイックソートを直に実装して cmp_to_key の使用を避けている
 #点群Pを反時計回りに並べ替えて返す
-def declination_sorted2(P):
+def declination_sorted2(arr):
   if len(arr) <= 1:
     return arr
   
