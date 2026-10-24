@@ -92,6 +92,45 @@ def declination_sorted(P):
   P.sort(key = cmp_to_key(declination))
   return P
 
+#定数倍の軽い偏角ソート
+#クイックソートを直に実装して cmp_to_key の使用を避けている
+#点群Pを反時計回りに並べ替えて返す
+def declination_sorted2(P):
+  if len(arr) <= 1:
+    return arr
+  
+  stack = [(0, len(arr) - 1)]
+  while stack:
+    left, right = stack.pop()
+    if left >= right:
+      continue
+          
+    # ピボットの選択（中央の要素を取るのが一般的）
+    pivot = arr[(left + right) // 2]
+      
+    i, j = left, right
+    while i <= j:
+      # m1 = (arr[i] < pivot) とする
+      while i <= j and (((arr[i][1] > 0 or (arr[i][1] == 0 and arr[i][0] > 0)) == (pivot[1] > 0 or (pivot[1] == 0 and pivot[0] > 0)) and arr[i][0]*pivot[1] - pivot[0]*arr[i][1] > 0) or ((arr[i][1] > 0 or (arr[i][1] == 0 and arr[i][0] > 0)) and not (pivot[1] > 0 or (pivot[1] == 0 and pivot[0] > 0)))):
+        i += 1
+        
+      # m2 = (pivot < arr[j]) とする
+      while i <= j and (((pivot[1] > 0 or (pivot[1] == 0 and pivot[0] > 0)) == (arr[j][1] > 0 or (arr[j][1] == 0 and arr[j][0] > 0)) and pivot[0]*arr[j][1] - arr[j][0]*pivot[1] > 0) or ((pivot[1] > 0 or (pivot[1] == 0 and pivot[0] > 0)) and not (arr[j][1] > 0 or (arr[j][1] == 0 and arr[j][0] > 0)))):
+        j -= 1
+        
+      if i <= j:
+        arr[i], arr[j] = arr[j], arr[i]
+        i += 1
+        j -= 1
+              
+    # 分割した区間をスタックに追加
+    if left < j:
+      stack.append((left, j))
+    if i < right:
+      stack.append((i, right))
+        
+  return arr
+
 #線分p0p1と線分p2p3が交差するか
 #端点を含む
 def intersect(p0,p1,p2,p3):
