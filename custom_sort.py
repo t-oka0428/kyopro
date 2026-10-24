@@ -1,4 +1,4 @@
-https://github.com/t-oka0428/kyopro/blob/main/custom_sort.py
+#https://github.com/t-oka0428/kyopro/blob/main/custom_sort.py
 
 #比較関数でsortしたいときに使用
 #cmp_to_keyは遅いのでこちらで
