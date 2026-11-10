@@ -29,8 +29,10 @@ def main():
 
   print("\n=== 6. MFGraph (MaxFlow) ===")
   mf = MFGraph(3)
+  #add_edge(始点,終点,容量)
   mf.add_edge(0, 1, 10)
   mf.add_edge(1, 2, 10)
+  #get_edge(i) => i番目の辺の(始点,終点,容量,流量)
   print("Max Flow (0 -> 2):", mf.flow(0, 2))  # 10
 
   print("\n=== 7. MCFGraph (MinCostFlow) ===")
