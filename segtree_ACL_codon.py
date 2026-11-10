@@ -1,5 +1,6 @@
 # https://github.com/t-oka0428/kyopro/blob/main/segtree_ACL_codon.py
 # AtCoder Library (ACL) - FenwickTree, SegTree & LazySegTree (Combined & Converted for Codon)
+#動かないかも
 
 class FenwickTree:
   def __init__(self, n: int = 0):
