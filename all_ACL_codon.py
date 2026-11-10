@@ -1,3 +1,4 @@
+# https://github.com/t-oka0428/kyopro/blob/main/all_ACL_codon.py
 # AtCoder Library (ACL) - Complete All-in-One Combined & Converted for Codon
 
 import math
