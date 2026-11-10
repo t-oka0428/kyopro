@@ -376,17 +376,17 @@ class SCCGraph:
 class MFGraph:
   class Edge:
     def __init__(self, to: int, rev: int, cap: int) -> None:
-      self.to = to
-      self.rev = rev
-      self.cap = cap
+      self.to: int = to
+      self.rev: int = rev
+      self.cap: int = cap
 
     def __repr__(self) -> str:
       return f"Edge(to={self.to}, rev={self.rev}, cap={self.cap})"
 
   def __init__(self, n: int) -> None:
     self._n = n
-    self._g = [[] for _ in range(n)]
-    self._pos = []
+    self._g: List[List[MFGraph.Edge[int, int, int]]] = [[] for _ in range(n)]
+    self._pos: List[Tuple[int, int]] = []
 
   def add_edge(self, from_el: int, to_el: int, cap: int) -> int:
     assert 0 <= from_el < self._n
