@@ -51,4 +51,9 @@ def main():
   print("\n=== 10. Math Utilities ===")
   print("pow_mod(2, 10, 1000):", pow_mod(2, 10, 1000))
   print("floor_sum(10, 3, 2, 1):", floor_sum(10, 3, 2, 1))
-  
+
+  print("\n=== 11. Convolution ===")
+  a = [1, 2, 3]
+  b = [4, 5, 6]
+  print("convolution(998244353, a, b):", convolution(998244353, a, b))
+  print("convolution_int(a, b):", convolution_int(a, b))
