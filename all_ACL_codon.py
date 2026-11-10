@@ -5,6 +5,24 @@ import math
 from heapq import heappush, heappop
 
 # ==========================================
+# 0. bit
+# ==========================================
+def _ceil_pow2(n: int) -> int:
+  if n <= 0:
+    return -1
+  x = 0
+  while (1 << x) < n:
+    x += 1
+  return x
+    
+def _bsf(n: int) -> int:
+  x = 0
+  while n % 2 == 0:
+    x += 1
+    n //= 2
+  return x    
+
+# ==========================================
 # 1. DSU (Disjoint Set Union / Union-Find)
 # ==========================================
 class DSU:
@@ -92,7 +110,7 @@ class SegTree:
       self._size = 1
       while self._size < self._n:
         self._size *= 2
-      self._log = (self._size).bit_length() - 1
+      self._log = _ceil_pow2(self._size)
       self.d = [self._e()] * (2 * self._size)
       for i in range(self._size):
         self.d[self._size + i] = self._e()
@@ -101,7 +119,7 @@ class SegTree:
       self._size = 1
       while self._size < self._n:
         self._size *= 2
-      self._log = (self._size).bit_length() - 1
+      self._log = _ceil_pow2(self._size)
       self.d = [self._e()] * (2 * self._size)
       for i in range(self._n):
         self.d[self._size + i] = v[i]
@@ -158,7 +176,7 @@ class LazySegTree:
       self._size = 1
       while self._size < self._n:
         self._size *= 2
-      self._log = (self._size).bit_length() - 1
+      self._log = _ceil_pow2(self._size)
       self.d = [self._e()] * (2 * self._size)
       for i in range(self._size):
         self.d[self._size + i] = self._e()
@@ -167,7 +185,7 @@ class LazySegTree:
       self._size = 1
       while self._size < self._n:
         self._size *= 2
-      self._log = (self._size).bit_length() - 1
+      self._log = _ceil_pow2(self._size)
       self.d = [self._e()] * (2 * self._size)
       for i in range(self._n):
         self.d[self._size + i] = v[i]
@@ -750,3 +768,184 @@ def floor_sum(n: int, m: int, a: int, b: int) -> int:
   ans += (n - (x_max + a - 1) // a) * y_max
   ans += floor_sum(y_max, a, m, (a - x_max % a) % a)
   return ans
+  
+
+# ==========================================
+# 11. Convolution (NTT)
+# ==========================================
+
+def _primitive_root(mod: int) -> int:
+  if mod == 2:
+    return 1
+
+  x = mod - 1
+  divs = []
+  i = 2
+
+  while i * i <= x:
+    if x % i == 0:
+      divs.append(i)
+      while x % i == 0:
+        x //= i
+    i += 1
+
+  if x > 1:
+    divs.append(x)
+
+  for g in range(2, mod):
+    ok = True
+    for d in divs:
+      if pow_mod(g, (mod - 1) // d, mod) == 1:
+        ok = False
+        break
+    if ok:
+      return g
+
+  return -1
+
+
+def _ntt(a: list[int], mod: int, invert: bool) -> None:
+  n = len(a)
+
+  # Bit reversal
+  j = 0
+  for i in range(1, n):
+    bit = n >> 1
+    while j & bit:
+      j ^= bit
+      bit >>= 1
+    j ^= bit
+
+    if i < j:
+      a[i], a[j] = a[j], a[i]
+
+  g = _primitive_root(mod)
+
+  length = 2
+  while length <= n:
+    wlen = pow_mod(g, (mod - 1) // length, mod)
+
+    if invert:
+      wlen = pow_mod(wlen, mod - 2, mod)
+
+    half = length >> 1
+
+    for i in range(0, n, length):
+      w = 1
+      for j in range(half):
+        u = a[i + j]
+        v = a[i + j + half] * w % mod
+
+        a[i + j] = (u + v) % mod
+        a[i + j + half] = (u - v) % mod
+
+        w = w * wlen % mod
+
+    length <<= 1
+
+  if invert:
+    inv_n = pow_mod(n, mod - 2, mod)
+    for i in range(n):
+      a[i] = a[i] * inv_n % mod
+
+
+def convolution_mod(
+  a: list[int],
+  b: list[int],
+  mod: int
+) -> list[int]:
+
+  n = len(a)
+  m = len(b)
+
+  if n == 0 or m == 0:
+    return []
+
+  # Naive convolution
+  if min(n, m) <= 60:
+    ans = [0] * (n + m - 1)
+
+    for i in range(n):
+      for j in range(m):
+        ans[i + j] = (
+          ans[i + j] + a[i] * b[j]
+        ) % mod
+
+    return ans
+
+  z = 1 << _ceil_pow2(n + m - 1)
+
+  assert (mod - 1) % z == 0
+
+  a2 = [x % mod for x in a]
+  b2 = [x % mod for x in b]
+
+  while len(a2) < z:
+    a2.append(0)
+
+  while len(b2) < z:
+    b2.append(0)
+
+  _ntt(a2, mod, False)
+  _ntt(b2, mod, False)
+
+  for i in range(z):
+    a2[i] = a2[i] * b2[i] % mod
+
+  _ntt(a2, mod, True)
+
+  return a2[:n + m - 1]
+
+
+def convolution(
+  mod: int,
+  a: list[int],
+  b: list[int]
+) -> list[int]:
+
+  return convolution_mod(a, b, mod)
+
+
+def convolution_int(
+  a: list[int],
+  b: list[int]
+) -> list[int]:
+
+  n = len(a)
+  m = len(b)
+
+  if n == 0 or m == 0:
+    return []
+
+  mod1 = 754974721
+  mod2 = 167772161
+  mod3 = 469762049
+
+  m1m2 = mod1 * mod2
+
+  # Modular inverses for CRT
+  i12 = pow_mod(mod1, mod2 - 2, mod2)
+  i123 = pow_mod(m1m2 % mod3, mod3 - 2, mod3)
+
+  c1 = convolution(mod1, a, b)
+  c2 = convolution(mod2, a, b)
+  c3 = convolution(mod3, a, b)
+
+  ans = [0] * (n + m - 1)
+
+  for i in range(n + m - 1):
+    # First two moduli
+    x1 = c1[i]
+
+    t2 = ((c2[i] - x1) % mod2) * i12 % mod2
+    x12 = x1 + mod1 * t2
+
+    # Third modulus
+    t3 = (
+      ((c3[i] - x12 % mod3) % mod3) * i123
+    ) % mod3
+
+    ans[i] = x12 + m1m2 * t3
+
+  return ans
+  
