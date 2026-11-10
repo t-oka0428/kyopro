@@ -1,3 +1,4 @@
+# https://github.com/t-oka0428/kyopro/blob/main/segtree_ACL_codon.py
 # AtCoder Library (ACL) - FenwickTree, SegTree & LazySegTree (Combined & Converted for Codon)
 
 class FenwickTree:
