@@ -863,7 +863,7 @@ def _ntt(a: list[int], mod: int, invert: bool) -> None:
         v = a[i + j + half] * w % mod
 
         a[i + j] = (u + v) % mod
-        a[i + j + half] = (u - v) % mod
+        a[i + j + half] = (u - v + mod) % mod
 
         w = w * wlen % mod
 
