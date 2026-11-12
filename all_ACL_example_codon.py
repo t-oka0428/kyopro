@@ -47,8 +47,11 @@ def main():
 
   print("\n=== 8. TwoSAT ===")
   ts = TwoSAT(2)
+  #add_clause(i, f, j, g) => (i == f) or (j == g)
   ts.add_clause(0, True, 1, True)
+  #satisfiable() => 割り当ての存在(bool)
   print("Satisfiable:", ts.satisfiable())
+  #answer => 割り当ての具体例を一つ
 
   print("\n=== 9. String Algorithms ===")
   print("Suffix Array of 'abracadabra':", suffix_array("abracadabra"))
