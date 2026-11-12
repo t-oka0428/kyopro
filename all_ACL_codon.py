@@ -299,6 +299,9 @@ class LazySegTree:
 # 5. SCC (Strongly Connected Components)
 # ==========================================
 class SCCGraph:
+  _n: int
+  _edges: List[Tuple[int, int]]
+
   def __init__(self, n: int) -> None:
     self._n = n
     self._edges = []
@@ -308,66 +311,77 @@ class SCCGraph:
     assert 0 <= to_el < self._n
     self._edges.append((from_el, to_el))
 
-  def scc(self):
-    g_from = [0] * (self._n + 1)
+  def scc_ids(self) -> Tuple[int, List[int]]:
+    n = self._n
+    g_from = [0] * (n + 1)
     for u, v in self._edges:
       g_from[u + 1] += 1
-    for i in range(self._n):
+    for i in range(n):
       g_from[i + 1] += g_from[i]
+      
     g_buf = [0] * len(self._edges)
     cursor = g_from[:]
     for u, v in self._edges:
       g_buf[cursor[u]] = v
       cursor[u] += 1
 
-    qid = [0] * self._n
-    inc = [True] * self._n
-    st = []
-    path = []
-    order = 0
-    n = self._n
-
+    now_ord = 0
+    group_num = 0
+    visited: List[int] = []
     low = [0] * n
     ord_ = [-1] * n
+    ids = [0] * n
 
-    def dfs(vertex):
-      nonlocal order
-      ord_[vertex] = order
-      low[vertex] = order
-      order += 1
-      path.append(vertex)
-      st.append(vertex)
-      for i in range(g_from[vertex], g_from[vertex + 1]):
-        to = g_buf[i]
-        if ord_[to] == -1:
-          dfs(to)
-          low[vertex] = min(low[vertex], low[to])
-        elif inc[to]:
-          low[vertex] = min(low[vertex], ord_[to])
-      if low[vertex] == ord_[vertex]:
-        while True:
-          u = path.pop()
-          inc[u] = False
-          qid[u] = vertex
-          if u == vertex:
-            break
+    edge_idx = g_from[:]
+    dfs_stack: List[int] = []
 
     for i in range(n):
       if ord_[i] == -1:
-        dfs(i)
+        ord_[i] = now_ord
+        low[i] = now_ord
+        now_ord += 1
+        visited.append(i)
+        dfs_stack.append(i)
 
-    group_num = 0
-    qid_map = {}
-    for i in range(n):
-      if qid[i] not in qid_map:
-        qid_map[qid[i]] = group_num
-        group_num += 1
-      qid[i] = qid_map[qid[i]]
+        while dfs_stack:
+          v = dfs_stack[-1]
+          if edge_idx[v] < g_from[v + 1]:
+            to = g_buf[edge_idx[v]]
+            edge_idx[v] += 1
+            if ord_[to] == -1:
+              ord_[to] = now_ord
+              low[to] = now_ord
+              now_ord += 1
+              visited.append(to)
+              dfs_stack.append(to)
+            else:
+              low[v] = min(low[v], ord_[to])
+          else:
+            dfs_stack.pop()
+            if dfs_stack:
+              parent = dfs_stack[-1]
+              low[parent] = min(low[parent], low[v])
 
-    result = [[] for _ in range(group_num)]
+            if low[v] == ord_[v]:
+              while True:
+                w = visited.pop()
+                ord_[w] = n
+                ids[w] = group_num
+                if w == v:
+                  break
+              group_num += 1
+
     for i in range(n):
-      result[qid[i]].append(i)
-    return result
+      ids[i] = group_num - 1 - ids[i]
+
+    return group_num, ids
+
+  def scc(self) -> List[List[int]]:
+    group_num, ids = self.scc_ids()
+    groups: List[List[int]] = [[] for _ in range(group_num)]
+    for i in range(self._n):
+      groups[ids[i]].append(i)
+    return groups
 
 
 # ==========================================
