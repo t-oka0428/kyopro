@@ -496,13 +496,23 @@ class MFGraph:
 # ==========================================
 # 7. MinCostFlow (MCFGraph)
 # ==========================================
+class MCFEdge:
+  dst: int
+  cap: int
+  cost: int
+  rev: int
+
+  def __init__(self, dst: int, cap: int, cost: int, rev: int) -> None:
+    self.dst = dst
+    self.cap = cap
+    self.cost = cost
+    self.rev = rev
+
+
 class MCFGraph:
-  class Edge:
-    def __init__(self, dst: int, cap: int, cost: int, rev) -> None:
-      self.dst = dst
-      self.cap = cap
-      self.cost = cost
-      self.rev = rev
+  _n: int
+  _g: List[List[MCFEdge]]
+  _edges: List[MCFEdge]
 
   def __init__(self, n: int) -> None:
     self._n = n
@@ -514,30 +524,45 @@ class MCFGraph:
     assert 0 <= dst < self._n
     assert 0 <= cap
     m = len(self._edges)
-    e = MCFGraph.Edge(dst, cap, cost, None)
-    re = MCFGraph.Edge(src, 0, -cost, None)
-    e.rev = re
-    re.rev = e
+    
+    from_id = len(self._g[src])
+    to_id = len(self._g[dst])
+    if src == dst:
+      to_id += 1
+      
+    e = MCFEdge(dst, cap, cost, to_id)
+    re = MCFEdge(src, 0, -cost, from_id)
+    
     self._g[src].append(e)
     self._g[dst].append(re)
     self._edges.append(e)
     return m
 
-  def flow(self, s: int, t: int, flow_limit: int = 10**18):
+  def get_edge(self, i: int) -> Tuple[int, int, int, int, int]:
+    assert 0 <= i < len(self._edges)
+    e = self._edges[i]
+    re = self._g[e.dst][e.rev]
+    return (re.dst, e.dst, e.cap + re.cap, re.cap, e.cost)
+
+  def edges(self) -> List[Tuple[int, int, int, int, int]]:
+    return [self.get_edge(i) for i in range(len(self._edges))]
+
+  def flow(self, s: int, t: int, flow_limit: int = 10**18) -> Tuple[int, int]:
     return self.slope(s, t, flow_limit)[-1]
 
-  def slope(self, s: int, t: int, flow_limit: int = 10**18):
+  def slope(self, s: int, t: int, flow_limit: int = 10**18) -> List[Tuple[int, int]]:
     assert 0 <= s < self._n
     assert 0 <= t < self._n
     assert s != t
 
-    dual = [0] * self._n
-    prev = [None] * self._n
+    dual: List[int] = [0] * self._n
+    prev: List[Tuple[int, int]] = [(0, 0)] * self._n
 
-    def refine_dual():
-      pq = [(0, s)]
-      visited = [False] * self._n
-      dist = [None] * self._n
+    def refine_dual() -> bool:
+      pq: List[Tuple[int, int]] = [(0, s)]
+      visited: List[bool] = [False] * self._n
+      INF = 10**18
+      dist: List[int] = [INF] * self._n
       dist[s] = 0
       while pq:
         d, v = heappop(pq)
@@ -551,14 +576,14 @@ class MCFGraph:
           if visited[to] or e.cap == 0:
             continue
           cost = e.cost - dual[to] + dual[v]
-          if dist[to] is None or dist[to] > dist[v] + cost:
+          if dist[to] > dist[v] + cost:
             dist[to] = dist[v] + cost
             prev[to] = (v, i)
             heappush(pq, (dist[to], to))
       if not visited[t]:
         return False
       for v in range(self._n):
-        if dist[v] is None:
+        if not visited[v]:
           continue
         dual[v] -= dist[t] - dist[v]
       return True
@@ -566,7 +591,7 @@ class MCFGraph:
     flow = 0
     cost = 0
     prev_cost_per_flow = -1
-    result = [(0, 0)]
+    result: List[Tuple[int, int]] = [(0, 0)]
 
     while flow < flow_limit:
       if not refine_dual():
@@ -584,7 +609,7 @@ class MCFGraph:
         p_v, p_i = prev[cur]
         e = self._g[p_v][p_i]
         e.cap -= f
-        e.rev.cap += f
+        self._g[e.dst][e.rev].cap += f
         cur = p_v
       if prev_cost_per_flow == -dual[s]:
         result.pop()
@@ -592,6 +617,7 @@ class MCFGraph:
       prev_cost_per_flow = -dual[s]
 
     return result
+
 
 
 # ==========================================
