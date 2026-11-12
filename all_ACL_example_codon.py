@@ -19,6 +19,15 @@ def main():
   lz = LazySegTree(lambda a, b: a + b, lambda: 0, lambda f, x: x + f, lambda f, g: f + g, 0, [1, 2, 3, 4, 5])
   lz.apply(1, 4, 10)
   print("all_prod after apply:", lz.all_prod())  # 45
+  """
+  B = 
+  op = lambda a, b: 
+  e = lambda: 
+  mapping = lambda f, x: 
+  composition = lambda f, g:
+  _id = 
+  seg = LazySegTree(op,e,mapping,composition,_id,B)
+  """
 
   print("\n=== 5. SCCGraph ===")
   scc = SCCGraph(3)
