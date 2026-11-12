@@ -666,30 +666,30 @@ class TwoSAT:
 
 
 # ==========================================
-# 9. String Algorithms (Suffix Array, Z-Algorithm)
+# 9. String Algorithms (Suffix Array, LCP Array, Z-Algorithm)
 # ==========================================
-def suffix_array(s):
-  if isinstance(s, str):
-    s = [ord(c) for c in s]
-  n = len(s)
+def suffix_array(s) -> List[int]:
+  arr: List[int] = [ord(c) for c in s] if isinstance(s, str) else list(s)
+  
+  n = len(arr)
   if n == 0:
     return []
   if n == 1:
     return [0]
   if n == 2:
-    if s[0] < s[1]:
+    if arr[0] < arr[1]:
       return [0, 1]
     else:
       return [1, 0]
   
   idx = list(range(n))
-  idx.sort(key=lambda i: s[i])
+  idx.sort(key=lambda i: arr[i])
   sa = [0] * n
   s_map = [0] * n
   s_map[idx[0]] = 0
   unique_cnt = 1
   for i in range(1, n):
-    if s[idx[i]] != s[idx[i - 1]]:
+    if arr[idx[i]] != arr[idx[i - 1]]:
       unique_cnt += 1
     s_map[idx[i]] = unique_cnt - 1
 
@@ -714,11 +714,36 @@ def suffix_array(s):
       break
   return idx
 
+def lcp_array(s, sa: List[int]) -> List[int]:
+  arr: List[int] = [ord(c) for c in s] if isinstance(s, str) else list(s)
 
-def z_algorithm(s):
-  if isinstance(s, str):
-    s = [ord(c) for c in s]
-  n = len(s)
+  n = len(arr)
+  assert n >= 1
+
+  rnk = [0] * n
+  for i in range(n):
+    rnk[sa[i]] = i
+
+  lcp = [0] * (n - 1)
+  h = 0
+  for i in range(n):
+    if h > 0:
+      h -= 1
+    if rnk[i] == 0:
+      continue
+    j = sa[rnk[i] - 1]
+    while j + h < n and i + h < n:
+      if arr[j + h] != arr[i + h]:
+        break
+      h += 1
+    lcp[rnk[i] - 1] = h
+
+  return lcp
+
+def z_algorithm(s) -> List[int]:
+  arr: List[int] = [ord(c) for c in s] if isinstance(s, str) else list(s)
+  
+  n = len(arr)
   if n == 0:
     return []
   z = [0] * n
@@ -726,7 +751,7 @@ def z_algorithm(s):
   j = 0
   for i in range(1, n):
     k = max(0, min(z[i - j], j + z[j] - i))
-    while i + k < n and s[k] == s[i + k]:
+    while i + k < n and arr[k] == arr[i + k]:
       k += 1
     z[i] = k
     if j + z[j] < i + z[i]:
@@ -988,4 +1013,3 @@ def convolution_int(
     ans[i] = x12 + m1m2 * t3
 
   return ans
-  
