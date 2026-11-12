@@ -156,9 +156,62 @@ class SegTree:
   def all_prod(self):
     return self.d[1]
 
+  def max_right(self, left: int, f) -> int:
+    assert 0 <= left <= self._n
+    assert f(self._e())
+
+    if left == self._n:
+      return self._n
+
+    left += self._size
+    sm = self._e()
+
+    first = True
+    while first or (left & -left) != left:
+      first = False
+      while left % 2 == 0:
+        left >>= 1
+      if not f(self._op(sm, self.d[left])):
+        while left < self._size:
+          left *= 2
+          if f(self._op(sm, self.d[left])):
+            sm = self._op(sm, self.d[left])
+            left += 1
+        return left - self._size
+      sm = self._op(sm, self.d[left])
+      left += 1
+
+    return self._n
+
+  def min_left(self, right: int, f) -> int:
+    assert 0 <= right <= self._n
+    assert f(self._e())
+
+    if right == 0:
+      return 0
+
+    right += self._size
+    sm = self._e()
+
+    first = True
+    while first or (right & -right) != right:
+      first = False
+      right -= 1
+      while right > 1 and right % 2:
+        right >>= 1
+      if not f(self._op(self.d[right], sm)):
+        while right < self._size:
+          right = 2 * right + 1
+          if f(self._op(self.d[right], sm)):
+            sm = self._op(self.d[right], sm)
+            right -= 1
+        return right + 1 - self._size
+      sm = self._op(self.d[right], sm)
+
+    return 0
+
   def _update(self, k: int) -> None:
     self.d[k] = self._op(self.d[2 * k], self.d[2 * k + 1])
-
 
 # ==========================================
 # 4. LazySegTree (Lazy Segment Tree)
@@ -237,7 +290,7 @@ class LazySegTree:
     return self._op(sml, smr)
 
   def all_prod(self):
-    return self.d[1]
+    return self.d
 
   def apply(self, l: int, r, f=None):
     if f is None:
@@ -245,7 +298,7 @@ class LazySegTree:
       p += self._size
       for i in range(self._log, 0, -1):
         self._push(p >> i)
-      self.d[p] = self._mapping(f, self.d[p])
+      self.d[p] = self._mapping(r, self.d[p])
       for i in range(1, self._log + 1):
         self._update(p >> i)
       return
@@ -282,6 +335,66 @@ class LazySegTree:
       if ((r >> i) << i) != r:
         self._update((r - 1) >> i)
 
+  def max_right(self, left: int, g) -> int:
+    assert 0 <= left <= self._n
+    assert g(self._e())
+
+    if left == self._n:
+      return self._n
+
+    left += self._size
+    for i in range(self._log, 0, -1):
+      self._push(left >> i)
+
+    sm = self._e()
+    first = True
+    while first or (left & -left) != left:
+      first = False
+      while left % 2 == 0:
+        left >>= 1
+      if not g(self._op(sm, self.d[left])):
+        while left < self._size:
+          self._push(left)
+          left *= 2
+          if g(self._op(sm, self.d[left])):
+            sm = self._op(sm, self.d[left])
+            left += 1
+        return left - self._size
+      sm = self._op(sm, self.d[left])
+      left += 1
+
+    return self._n
+
+  def min_left(self, right: int, g) -> int:
+    assert 0 <= right <= self._n
+    assert g(self._e())
+
+    if right == 0:
+      return 0
+
+    right += self._size
+    for i in range(self._log, 0, -1):
+      self._push((right - 1) >> i)
+
+    sm = self._e()
+    first = True
+    while first or (right & -right) != right:
+      first = False
+      right -= 1
+      while right > 1 and right % 2:
+        right >>= 1
+      if not g(self._op(self.d[right], sm)):
+        while right < self._size:
+          self._push(right)
+          right = 2 * right + 1
+          if g(self._op(self.d[right], sm)):
+            sm = self._op(self.d[right], sm)
+            right -= 1
+        return right + 1 - self._size
+      sm = self._op(self.d[right], sm)
+
+    return 0
+
   def _update(self, k: int) -> None:
     self.d[k] = self._op(self.d[2 * k], self.d[2 * k + 1])
 
@@ -293,7 +406,7 @@ class LazySegTree:
   def _push(self, k: int) -> None:
     self._all_apply(2 * k, self.lz[k])
     self._all_apply(2 * k + 1, self.lz[k])
-
+    self.lz[k] = self._id
 
 # ==========================================
 # 5. SCC (Strongly Connected Components)
